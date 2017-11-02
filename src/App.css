@@ -2,23 +2,6 @@ body {
   margin: 0;
 }
 
-table {
-  margin: auto;
-  margin-top: 20px;
-  width: 80%;
-  border-collapse: collapse;
-  text-align: center;
-}
-
-th, td {
-  border: 1px solid black;
-  line-height: 30px;
-}
-
-tr:nth-child(even) {
-    background-color: #dddddd;
-}
-
 footer {
   text-align: center;
   margin-top: 20px;
@@ -39,4 +22,28 @@ footer {
 
 #contents {
   text-align: center;
+}
+
+/* Table Formatting */
+
+table {
+  margin: auto;
+  margin-top: 20px;
+  width: 80%;
+  border-collapse: collapse;
+  text-align: center;
+}
+
+th, td {
+  border: 1px solid black;
+  line-height: 30px;
+}
+
+tr:nth-child(even) {
+    background-color: #dddddd;
+}
+
+.highlight {
+  font-style: italic;
+  font-weight: bold;
 }

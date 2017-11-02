@@ -16,46 +16,109 @@ class Top extends Component {
       </div>
     );
   }
-}; //learn how to add children to App Component
+};
+class Table extends Component {
+  constructor(props) {
+      super(props);
+      this.clickHandler = this.clickHandler.bind(this);
+      this.state = {
+        data: DATA,
+        sort: 'recent'
+      }
+  }
+  componentDidMount() {
+    $.getJSON(url1).then(result => {
+      this.setState({
+        data: result,
+        sort: 'recent'
+      });
+    });
+  }
+  fetch(sort) {
+    let url = '';
+    if (sort === 'recent') {
+      url = url1;
+    } else if (sort === 'alltime') {
+      url = url2;
+    }
+    $.getJSON(url).then(result => {
+      this.setState({
+        data: result,
+        sort: sort
+      });
+    });
+  }
+  clickHandler(e) {
+    e.preventDefault();
+    this.fetch(e.target.id);
+  }
+  render() {
+    let sort = {
+      recent: {
+        class: '',
+        text: <span>Last 30 Days</span>
+      },
+      alltime: {
+        class: '',
+        text: <span>All Time</span>
+      }
+    };
+
+    if (this.state.sort === 'recent') {
+      sort.recent.class = 'highlight';
+      sort.recent.text =  <span>Last 30 Days &#9207;</span>
+    } else if (this.state.sort === 'alltime') {
+      sort.alltime.class = 'highlight';
+      sort.alltime.text =  <span>All Time &#9207;</span>
+    }
+
+    return (
+      <table>
+        <TitleRow
+          sort={sort}
+          action={this.clickHandler}
+        />
+        <DataRow
+          data={this.state.data}
+          sort={sort}
+        />
+      </table>
+    );
+  }
+};
 class TitleRow extends Component {
   render() {
-    //learn to loop the th tag elements
     return (
       <thead>
         <tr>
           <th>Rank</th>
           <th>User</th>
-          <th>Last 30 Days</th>
-          <th>All Time</th>
+          <th
+            id={'recent'}
+            className={this.props.sort.recent.class}
+            onClick={this.props.action}
+          >{this.props.sort.recent.text}</th>
+          <th
+            id={'alltime'}
+            className={this.props.sort.alltime.class}
+            onClick={this.props.action}
+          >{this.props.sort.alltime.text}</th>
         </tr>
       </thead>
     );
   }
 };
 class DataRow extends Component {
-  constructor(props) {
-      super(props);
-      this.state = {
-        data: DATA
-      }
-  }
-  componentDidMount() {
-    $.getJSON(url1).then(result => {
-      this.setState({
-        data: result
-      });
-    });
-  }
-
   render() {
     const rows = [];
-    this.state.data.forEach(function(item, index) {
+    let sort = this.props.sort;
+    this.props.data.forEach(function(item, index) {
       rows.push(
         <tr key={item.username}>
           <td>{index + 1}</td>
           <td>{item.username}</td>
-          <td>{item.recent}</td>
-          <td>{item.alltime}</td>
+          <td className={sort.recent.class}>{item.recent}</td>
+          <td className={sort.alltime.class}>{item.alltime}</td>
         </tr>
       );
     });
@@ -85,10 +148,7 @@ class App extends Component {
     return (
       <div>
         <Top />
-        <table>
-          <TitleRow />
-          <DataRow />
-        </table>
+        <Table />
         <Footer />
       </div>
 
