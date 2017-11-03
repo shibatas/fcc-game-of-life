@@ -3,10 +3,16 @@
 body {
   margin: 0;
   text-align: center;
+  font-family: Helvetica;
 }
 .left {
   text-align: left;
-  margin: 30px;
+}
+.right {
+  text-align: right;
+}
+.center {
+  text-align: center;
 }
 hr {
   width: 90%
@@ -41,12 +47,27 @@ hr {
 .app-footer {
   margin-top: 20px;
 }
-button {
+button, .btn {
+  width: 150px;
   padding: 15px;
   margin: 20px;
   border-radius: 3px;
   font-weight: bolder;
   background-color: #bebebe;
+}
+.btn-small {
+  width: 150px;
+  padding: 5px;
+  margin-top: 20px;
+  margin-bottom: 5px;
+}
+.btn-submit {
+  padding: 7px;
+  font-size: 1.5em;
+  border-radius: 10px;
+  background-color: #c43a19;
+  border-color: #b33517;
+  color: #ffffff;
 }
 
 /* modal */
@@ -64,7 +85,7 @@ button {
   top: 200px;
   margin: auto;
   width: 50%;
-  min-width: 400px;
+  min-width: 500px;
   height: auto;
   background-color: white;
   border-radius: 10px;
@@ -89,10 +110,14 @@ button {
   border-top-left-radius: 0;
   border-top-right-radius: 0;
   padding: 10px;
+  text-align: center;
   margin-top: 20px;
 }
 
 /* recipe table */
+.recipe {
+  margin: 30px;
+}
 table {
   width: 80%;
   margin: auto;
@@ -107,11 +132,16 @@ td {
   padding-left: 10px;
   padding-right: 10px;
 }
-tr:nth-child(even) {
+/*tr:nth-child(even) {
   background: #E0E0E0;
-}
+}*/
 .instructions {
   text-align: left;
+}
+
+/* edit modal */
+input {
+  width: 100%;
 }
 
 /* footer area */

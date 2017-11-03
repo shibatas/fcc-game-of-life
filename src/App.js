@@ -10,6 +10,7 @@ class Parent extends Component {
   render() {
     return (
       <div>
+        <p>NOTE: I am still completing this app. Please check back soon for the finished product!</p>
         <Header />
         <App />
         <Footer />
@@ -51,26 +52,35 @@ class App extends Component {
     super(props);
     this.state = {
       id: null, //recipe array index position to be rendered
+      editExisting: false,
       recipes: recipes,
       messages: messages,
-      showRecipe: false
+      showRecipe: false,
+      editRecipe: false,
     };
   }
   toggleRecipe = (e) => {
     this.setState({
       showRecipe: !this.state.showRecipe,
-      id: e.target.id
+      id: e.target.id,
+      editExisting: true
+    })
+  }
+  toggleEdit = () => {
+    this.setState({
+      editRecipe: !this.state.editRecipe,
     })
   }
   render() {
     return (
       <div className="app">
-        <RecipeDetails show={this.state.showRecipe} id={this.state.id} toggle={this.toggleRecipe}/>
+        <RecipeDetails show={this.state.showRecipe} id={this.state.id} toggle={this.toggleRecipe} edit={this.toggleEdit}/>
+        <EditRecipe show={this.state.editRecipe} id={this.state.id} existing={this.state.editExisting} toggle={this.toggleEdit} />
         <Messages messages={this.state.messages} />
         <RenderNames action={this.toggleRecipe} />
         <div className="app-footer">
           <hr/>
-          <button>Add a new recipe</button>
+          <button onClick={this.toggleEdit}>Add a new recipe</button>
         </div>
       </div>
     );
@@ -100,7 +110,9 @@ class RenderNames extends Component {
 }
 class RecipeDetails extends Component {
   render() {
-    if (this.props.show) {
+    if (!this.props.show) {
+      return null;
+    } else {
       let recipe = recipes.find((item)=>{
         return item.id.toString() === this.props.id;
       });
@@ -112,44 +124,133 @@ class RecipeDetails extends Component {
               <button className="modal-close" onClick={this.props.toggle}>&#215;</button>
             </div>
             <h1>{recipe.name}</h1>
-            <h3 className="left">Ingredients:</h3>
-            <table>
-              <thead>
-                <tr>
-                  <th width='70%'>Ingredient</th>
-                  <th>Qty</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recipe.ingredients.map((item, index) => {
-                  return (
-                    <tr key={index}>
-                      <td>{item[0]}</td>
-                      <td>{item[1] + ' ' + item[2]}</td>
-                    </tr> );
-                })}
-              </tbody>
-            </table>
-            <h3 className="left">Instructions:</h3>
-            <table className="instructions">
-              {recipe.instructions.map((item, index) => {
-                return (
-                    <tr key={index}>
-                      <td width='50px'>{(index + 1) + '.'}</td>
-                      <td>{item}</td>
-                    </tr>
-                );
-              })}
-            </table>
+            <div className="recipe">
+              <h3 className="left">Ingredients:</h3>
+              <table>
+                <thead>
+                  <tr>
+                    <th width='70%'>Ingredient</th>
+                    <th>Qty</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recipe.ingredients.map((item, index) => {
+                    return (
+                      <tr key={index}>
+                        <td>{item[0]}</td>
+                        <td>{item[1] + ' ' + item[2]}</td>
+                      </tr> );
+                  })}
+                </tbody>
+              </table>
+              <h3 className="left">Instructions:</h3>
+              <table className="instructions">
+                <tbody>
+                  {recipe.instructions.map((item, index) => {
+                    return (
+                        <tr key={index}>
+                          <td width='50px'>{(index + 1) + '.'}</td>
+                          <td>{item}</td>
+                        </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
             <div className="modal-footer">
-              <button>Edit this recipe</button>
+              <button onClick={this.props.edit}>Edit this recipe</button>
               <button>Delete this recipe</button>
             </div>
           </div>
         </div>
       );
-    } else {
+    }
+  }
+}
+class EditRecipe extends Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      name: 'test'
+    }
+  }
+  update = (e) => {
+    console.log(e.target.id);
+    this.setState({
+      name: e.target.value
+    })
+  }
+  submit = () => {
+    console.log(this.state);
+
+    this.props.toggle();
+  }
+  render() {
+    if (!this.props.show) {
       return null;
+    } else {
+      return (
+        <div>
+          <div className="backdrop" onClick={this.props.toggle}></div>
+          <form className="modal" action="javascript:void(0);" onSubmit={this.submit}>
+            <div className="wrap">
+              <button className="modal-close" onClick={this.props.toggle}>&#215;</button>
+            </div>
+            <h1>Recipe Editor</h1>
+            <h3>Type in your recipe below and hit submit!</h3>
+            <table className="row">
+              <tbody>
+                <tr>
+                  <td className="left"><label>Name:</label></td>
+                  <td colSpan="3"><input type="text" id="name" defaultValue={this.state.name} onChange={this.update}/></td>
+                </tr>
+                <tr><td><br/></td></tr>
+                <tr>
+                  <td className="left"><label>Ingredients:</label></td>
+                </tr>
+                <tr>
+                  <td/>
+                  <td className="center" width="200">name</td>
+                  <td className="center">qty</td>
+                  <td className="center">unit</td>
+                </tr>
+                <tr>
+                  <td className="right"><label>1:</label></td>
+                  <td><input type="text" /></td>
+                  <td><input type="text" /></td>
+                  <td><input type="text" /></td>
+                </tr>
+                <tr>
+                  <td className="right"><label>2:</label></td>
+                  <td><input type="text" /></td>
+                  <td><input type="text" /></td>
+                  <td><input type="text" /></td>
+                </tr>
+                <tr/>
+                <tr><td><br/></td></tr>
+                <tr>
+                  <td className="left"><label>Instructions:</label></td>
+                </tr>
+                <tr>
+                  <td className="right"><label>1:</label></td>
+                  <td colSpan="3"><input type="text" /></td>
+                </tr>
+                <tr>
+                  <td className="right"><label>2:</label></td>
+                  <td colSpan="3"><input type="text" /></td>
+                </tr>
+              </tbody>
+            </table>
+            <div className="center">
+              <button className='btn-small'>More Ingredients</button>
+              <button className='btn-small'>More Instructions</button>
+            </div>
+            <div className="modal-footer">
+              <input className='btn btn-submit' type="submit" value="submit"/>
+            </div>
+          </form>
+        </div>
+      );
     }
   }
 }
