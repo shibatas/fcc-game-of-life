@@ -17,7 +17,7 @@ class Parent extends Component {
       </div>
     );
   }
-};
+}
 class Header extends Component {
     render() {
       return (
@@ -51,31 +51,55 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      id: null, //recipe array index position to be rendered
-      editExisting: false,
+      id: '', //recipe id to be rendered
+      editId: '', //recipe id to be edited
       recipes: recipes,
+      editContents: {
+        id: null,
+        name: '',
+        ingredients: [
+          [ '', '', '' ],
+          [ '', '', '' ]
+        ],
+        instructions: [
+          '', '', ''
+        ]
+      },
       messages: messages,
       showRecipe: false,
       editRecipe: false,
+      editExisting: false
     };
   }
   toggleRecipe = (e) => {
     this.setState({
       showRecipe: !this.state.showRecipe,
       id: e.target.id,
-      editExisting: true
+      editExisting: !this.state.editExisting
     })
+    if (this.state.editExisting) {
+      //console.log(this.state.id);
+      let recipe = recipes.find((item)=>{
+        return item.id.toString() === this.state.id;
+      });
+      //console.log(recipe);
+      this.setState({
+        editContents: recipe
+      })
+    }
   }
   toggleEdit = () => {
     this.setState({
+      editId: this.state.id,
       editRecipe: !this.state.editRecipe,
     })
   }
   render() {
+    console.log(this.state.editContents);
     return (
       <div className="app">
         <RecipeDetails show={this.state.showRecipe} id={this.state.id} toggle={this.toggleRecipe} edit={this.toggleEdit}/>
-        <EditRecipe show={this.state.editRecipe} id={this.state.id} existing={this.state.editExisting} toggle={this.toggleEdit} />
+        <EditRecipe show={this.state.editRecipe} id={this.state.editId} recipe={this.state.editContents} toggle={this.toggleEdit} />
         <Messages messages={this.state.messages} />
         <RenderNames action={this.toggleRecipe} />
         <div className="app-footer">
@@ -170,17 +194,7 @@ class RecipeDetails extends Component {
 class EditRecipe extends Component {
   constructor(props) {
     super(props)
-    this.state = {
-      id: null,
-      name: 'test',
-      ingredients: [
-        [ 'name', 'qty', 'unit' ],
-        [ 'name', 'qty', 'unit' ]
-      ],
-      instructions: [
-        'step 1', 'step 2', 'step 3'
-      ]
-    }
+    this.state = this.props.recipe
   }
   update = () => {
     let ing = [];
@@ -207,7 +221,6 @@ class EditRecipe extends Component {
       ingredients: ing,
       instructions: ins
     })
-    console.log(this.state);
   }
   componentWillMount () {
     this.initialState = this.state;
@@ -215,13 +228,24 @@ class EditRecipe extends Component {
   submit = () => {
     if (this.state.id > recipes.length) {
       recipes.push(this.state);
-      console.log(recipes);
     }
     this.reset();
     this.props.toggle();
   }
   reset = () => {
-    this.setState(this.initialState);
+    //this.setState(this.initialState);
+    //issue: above line did not delete added fields to form, so I am manually resetting state for now.
+    this.setState({
+      id: null,
+      name: '',
+      ingredients: [
+        [ '', '', '' ],
+        [ '', '', '' ]
+      ],
+      instructions: [
+        '', '', ''
+      ]
+    });
   }
   renderIng = () => {
     let arr = [];
@@ -251,7 +275,7 @@ class EditRecipe extends Component {
   }
   addIng = () => {
     let arr = this.state.ingredients;
-    arr.push( ['name', 'qty', 'unit'] );
+    arr.push( ['', '', ''] );
     this.setState({
       ingredients: arr
     });
@@ -267,6 +291,7 @@ class EditRecipe extends Component {
     if (!this.props.show) {
       return null;
     } else {
+      console.log(this.props.recipe);
       return (
         <div>
           <div className="backdrop" onClick={this.props.toggle}></div>
@@ -292,9 +317,7 @@ class EditRecipe extends Component {
                   <td className="center">qty</td>
                   <td className="center">unit</td>
                 </tr>
-
                 <this.renderIng />
-
                 <tr><td><br/></td></tr>
                 <tr>
                   <td className="left"><label>Instructions:</label></td>
