@@ -171,58 +171,50 @@ class EditRecipe extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      recipe: {
-        id: null,
-        name: 'test',
-        ingredients: [
-          [ 'test', 'test', 'test' ],
-          [ 'test', 'test', 'test' ]
-        ],
-        instructions: []
-      }
+      id: null,
+      name: 'test',
+      ingredients: [
+        [ 'name', 'qty', 'unit' ],
+        [ 'name', 'qty', 'unit' ]
+      ],
+      instructions: [
+        'step 1', 'step 2', 'step 3'
+      ]
     }
   }
   update = () => {
-    let ing = [
-      [
-        document.getElementById('ing-name-1').value,
-        document.getElementById('ing-qty-1').value,
-        document.getElementById('ing-unit-1').value
-      ],
-      [
-        document.getElementById('ing-name-2').value,
-        document.getElementById('ing-qty-2').value,
-        document.getElementById('ing-unit-2').value
-      ]
-    ];
-    let ins = [
-      document.getElementById('ins-1').value,
-      document.getElementById('ins-2').value
-    ]
-    console.log(this.state.id);
-    let id = this.state.recipe.id;
-    if (!this.state.recipe.id) {
+    let ing = [];
+    this.state.ingredients.forEach((item, index) => {
+      let num = index + 1;
+      ing.push([
+        document.getElementById('ing-name-'+ num).value,
+        document.getElementById('ing-qty-'+ num).value,
+        document.getElementById('ing-unit-'+ num).value
+      ])
+    });
+    let ins = [];
+    this.state.instructions.forEach((item, index) => {
+      let num = index + 1;
+      ins.push(document.getElementById('ins-'+ num).value);
+    });
+    let id = this.state.id;
+    if (!this.state.id) {
       id = recipes.length + 1;
     }
     this.setState({
-      length: {
-        ing: 2,
-        ins: 2
-      },
-      recipe: {
-        id: id,
-        name: document.getElementById('name').value,
-        ingredients: ing,
-        instructions: ins
-      }
+      id: id,
+      name: document.getElementById('name').value,
+      ingredients: ing,
+      instructions: ins
     })
+    console.log(this.state);
   }
   componentWillMount () {
     this.initialState = this.state;
   }
   submit = () => {
-    if (this.state.recipe.id > recipes.length) {
-      recipes.push(this.state.recipe);
+    if (this.state.id > recipes.length) {
+      recipes.push(this.state);
       console.log(recipes);
     }
     this.reset();
@@ -233,15 +225,43 @@ class EditRecipe extends Component {
   }
   renderIng = () => {
     let arr = [];
-    arr.push(
-      <tr>
-        <td className="right"><label>2:</label></td>
-        <td><input type="text" id="ing-name-2" defaultValue={this.state.recipe.ingredients[1][0]} onChange={this.update}/></td>
-        <td><input type="text" id="ing-qty-2" defaultValue={this.state.recipe.ingredients[1][1]} onChange={this.update}/></td>
-        <td><input type="text" id="ing-unit-2" defaultValue={this.state.recipe.ingredients[1][2]} onChange={this.update}/></td>
-      </tr>
-    );
+    this.state.ingredients.forEach((item, index) => {
+      arr.push(
+        <tr key={"ing-" + (index+1)}>
+          <td className="right"><label>{(index+1)+":"}</label></td>
+          <td><input type="text" id={"ing-name-" + (index+1)} defaultValue={item[0]} onChange={this.update}/></td>
+          <td><input type="text" id={"ing-qty-" + (index+1)} defaultValue={item[1]} onChange={this.update}/></td>
+          <td><input type="text" id={"ing-unit-" + (index+1)} defaultValue={item[2]} onChange={this.update}/></td>
+        </tr>
+      );
+    });
     return arr;
+  }
+  renderIns = () => {
+    let arr = [];
+    this.state.instructions.forEach((item, index) => {
+      arr.push(
+        <tr key={"ins-"+(index+1)}>
+          <td className="right"><label>{(index+1) + ":"}</label></td>
+          <td colSpan="3"><input type="text" id={"ins-" + (index+1)} defaultValue={item} onChange={this.update}/></td>
+        </tr>
+      );
+    });
+    return arr;
+  }
+  addIng = () => {
+    let arr = this.state.ingredients;
+    arr.push( ['name', 'qty', 'unit'] );
+    this.setState({
+      ingredients: arr
+    });
+  }
+  addIns = () => {
+    let arr = this.state.instructions;
+    arr.push( '' );
+    this.setState({
+      instructions: arr
+    });
   }
   render() {
     if (!this.props.show) {
@@ -260,7 +280,7 @@ class EditRecipe extends Component {
               <tbody>
                 <tr>
                   <td className="left"><label>Name:</label></td>
-                  <td colSpan="3"><input type="text" id="name" defaultValue={this.state.recipe.name} onChange={this.update}/></td>
+                  <td colSpan="3"><input type="text" id="name" defaultValue={this.state.name} onChange={this.update}/></td>
                 </tr>
                 <tr><td><br/></td></tr>
                 <tr>
@@ -272,33 +292,19 @@ class EditRecipe extends Component {
                   <td className="center">qty</td>
                   <td className="center">unit</td>
                 </tr>
-                <tr>
-                  <td className="right"><label>1:</label></td>
-                  <td><input type="text" id="ing-name-1" defaultValue={this.state.recipe.ingredients[0][0]} onChange={this.update}/></td>
-                  <td><input type="text" id="ing-qty-1" defaultValue={this.state.recipe.ingredients[0][1]} onChange={this.update}/></td>
-                  <td><input type="text" id="ing-unit-1" defaultValue={this.state.recipe.ingredients[0][2]} onChange={this.update}/></td>
-                </tr>
 
                 <this.renderIng />
 
-                <tr/>
                 <tr><td><br/></td></tr>
                 <tr>
                   <td className="left"><label>Instructions:</label></td>
                 </tr>
-                <tr>
-                  <td className="right"><label>1:</label></td>
-                  <td colSpan="3"><input type="text" id="ins-1" defaultValue={this.state.recipe.instructions[0]} onChange={this.update}/></td>
-                </tr>
-                <tr>
-                  <td className="right"><label>2:</label></td>
-                  <td colSpan="3"><input type="text" id="ins-2" defaultValue={this.state.recipe.instructions[1]} onChange={this.update}/></td>
-                </tr>
+                <this.renderIns />
               </tbody>
             </table>
             <div className="center">
-              <button className='btn-small'>More Ingredients</button>
-              <button className='btn-small'>More Instructions</button>
+              <button className='btn-small' type="button" onClick={this.addIng}>More Ingredients</button>
+              <button className='btn-small' type="button" onClick={this.addIns}>More Instructions</button>
             </div>
             <div className="modal-footer">
               <input className='btn btn-submit' type="submit" value="submit"/>

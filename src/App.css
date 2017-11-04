@@ -82,7 +82,7 @@ button, .btn {
 }
 .modal {
   position: fixed;
-  top: 200px;
+  top: 100px;
   margin: auto;
   width: 50%;
   min-width: 500px;
