@@ -171,19 +171,57 @@ class EditRecipe extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      name: 'test'
+      id: null,
+      name: 'test',
+      ingredients: [
+        [ 'test', 'test', 'test' ],
+        [ 'test', 'test', 'test' ]
+      ],
+      instructions: []
     }
   }
-  update = (e) => {
-    console.log(e.target.id);
+  update = () => {
+    let ing = [
+      [
+        document.getElementById('ing-name-1').value,
+        document.getElementById('ing-qty-1').value,
+        document.getElementById('ing-unit-1').value
+      ],
+      [
+        document.getElementById('ing-name-2').value,
+        document.getElementById('ing-qty-2').value,
+        document.getElementById('ing-unit-2').value
+      ]
+    ];
+    let ins = [
+      document.getElementById('ins-1').value,
+      document.getElementById('ins-2').value
+    ]
+    console.log(this.state.id);
+    let id = this.state.id;
+    if (!this.state.id) {
+      id = recipes.length + 1;
+    }
     this.setState({
-      name: e.target.value
+      id: id,
+      name: document.getElementById('name').value,
+      ingredients: ing,
+      instructions: ins
     })
   }
+  componentWillMount () {
+    this.initialState = this.state;
+  }
   submit = () => {
-    console.log(this.state);
-
+    if (this.state.id > recipes.length) {
+      recipes.push(this.state);
+      console.log(recipes);
+    }
+    this.reset();
     this.props.toggle();
+  }
+  reset = () => {
+    this.setState(this.initialState);
   }
   render() {
     if (!this.props.show) {
@@ -192,7 +230,7 @@ class EditRecipe extends Component {
       return (
         <div>
           <div className="backdrop" onClick={this.props.toggle}></div>
-          <form className="modal" action="javascript:void(0);" onSubmit={this.submit}>
+          <form className="modal" id="editForm" action="javascript:void(0);" onSubmit={this.submit}>
             <div className="wrap">
               <button className="modal-close" onClick={this.props.toggle}>&#215;</button>
             </div>
@@ -216,15 +254,15 @@ class EditRecipe extends Component {
                 </tr>
                 <tr>
                   <td className="right"><label>1:</label></td>
-                  <td><input type="text" /></td>
-                  <td><input type="text" /></td>
-                  <td><input type="text" /></td>
+                  <td><input type="text" id="ing-name-1" defaultValue={this.state.ingredients[0][0]} onChange={this.update}/></td>
+                  <td><input type="text" id="ing-qty-1" defaultValue={this.state.ingredients[0][1]} onChange={this.update}/></td>
+                  <td><input type="text" id="ing-unit-1" defaultValue={this.state.ingredients[0][2]} onChange={this.update}/></td>
                 </tr>
                 <tr>
                   <td className="right"><label>2:</label></td>
-                  <td><input type="text" /></td>
-                  <td><input type="text" /></td>
-                  <td><input type="text" /></td>
+                  <td><input type="text" id="ing-name-2" defaultValue={this.state.ingredients[1][0]} onChange={this.update}/></td>
+                  <td><input type="text" id="ing-qty-2" defaultValue={this.state.ingredients[1][1]} onChange={this.update}/></td>
+                  <td><input type="text" id="ing-unit-2" defaultValue={this.state.ingredients[1][2]} onChange={this.update}/></td>
                 </tr>
                 <tr/>
                 <tr><td><br/></td></tr>
@@ -233,11 +271,11 @@ class EditRecipe extends Component {
                 </tr>
                 <tr>
                   <td className="right"><label>1:</label></td>
-                  <td colSpan="3"><input type="text" /></td>
+                  <td colSpan="3"><input type="text" id="ins-1" defaultValue={this.state.instructions[0]} onChange={this.update}/></td>
                 </tr>
                 <tr>
                   <td className="right"><label>2:</label></td>
-                  <td colSpan="3"><input type="text" /></td>
+                  <td colSpan="3"><input type="text" id="ins-2" defaultValue={this.state.instructions[1]} onChange={this.update}/></td>
                 </tr>
               </tbody>
             </table>
