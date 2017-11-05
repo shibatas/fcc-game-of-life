@@ -5,6 +5,17 @@ import './App.css';
 //create a list of all recipe names from initial data
 //TO DO: if user data is stored, use that instead.
 let recipes = defaultRecipes;
+const emptyRecipe = {
+  id: null,
+  name: '',
+  ingredients: [
+    [ '', '', '' ],
+    [ '', '', '' ]
+  ],
+  instructions: [
+    '', '', ''
+  ]
+};
 
 class Parent extends Component {
   render() {
@@ -52,54 +63,40 @@ class App extends Component {
     super(props);
     this.state = {
       id: '', //recipe id to be rendered
-      editId: '', //recipe id to be edited
-      recipes: recipes,
-      editContents: {
-        id: null,
-        name: '',
-        ingredients: [
-          [ '', '', '' ],
-          [ '', '', '' ]
-        ],
-        instructions: [
-          '', '', ''
-        ]
-      },
+      recipe: emptyRecipe,
       messages: messages,
       showRecipe: false,
-      editRecipe: false,
-      editExisting: false
+      editRecipe: false
     };
   }
+  componentDidUpdate() {
+    let message = null;
+    if (message !== this.state.messages) {
+      this.setState({
+        messages: message
+      });
+    }
+  }
   toggleRecipe = (e) => {
+    let recipe = recipes.find((item)=>{
+      return item.id.toString() === e.target.id;
+    });
     this.setState({
       showRecipe: !this.state.showRecipe,
       id: e.target.id,
-      editExisting: !this.state.editExisting
+      recipe: recipe
     })
-    if (this.state.editExisting) {
-      //console.log(this.state.id);
-      let recipe = recipes.find((item)=>{
-        return item.id.toString() === this.state.id;
-      });
-      //console.log(recipe);
-      this.setState({
-        editContents: recipe
-      })
-    }
   }
   toggleEdit = () => {
     this.setState({
-      editId: this.state.id,
       editRecipe: !this.state.editRecipe,
     })
   }
   render() {
-    console.log(this.state.editContents);
     return (
       <div className="app">
         <RecipeDetails show={this.state.showRecipe} id={this.state.id} toggle={this.toggleRecipe} edit={this.toggleEdit}/>
-        <EditRecipe show={this.state.editRecipe} id={this.state.editId} recipe={this.state.editContents} toggle={this.toggleEdit} />
+        <EditRecipe show={this.state.editRecipe} existing={this.state.showRecipe} recipe={this.state.recipe} toggle={this.toggleEdit} />
         <Messages messages={this.state.messages} />
         <RenderNames action={this.toggleRecipe} />
         <div className="app-footer">
@@ -112,13 +109,17 @@ class App extends Component {
 }
 class Messages extends Component {
   render() {
-    return (
-      <div>
-        {this.props.messages.map(function(item, index){
-          return <p key={index}>{item}</p>
-        })}
-      </div>
-    );
+    if (this.props.messages) {
+      return (
+        <div>
+          {this.props.messages.map(function(item, index){
+            return <p key={index}>{item}</p>
+          })}
+        </div>
+      );
+    } else {
+      return null;
+    }
   }
 }
 class RenderNames extends Component {
@@ -133,6 +134,14 @@ class RenderNames extends Component {
   }
 }
 class RecipeDetails extends Component {
+  delete = (e) => {
+    recipes.splice(this.props.id-1, 1);
+    recipes.forEach((item, index) => {
+      recipes[index].id = index+1;
+    });
+    this.props.toggle(e);
+    //need to reassign ids
+  }
   render() {
     if (!this.props.show) {
       return null;
@@ -183,7 +192,7 @@ class RecipeDetails extends Component {
             </div>
             <div className="modal-footer">
               <button onClick={this.props.edit}>Edit this recipe</button>
-              <button>Delete this recipe</button>
+              <button onClick={this.delete}>Delete this recipe</button>
             </div>
           </div>
         </div>
@@ -194,7 +203,14 @@ class RecipeDetails extends Component {
 class EditRecipe extends Component {
   constructor(props) {
     super(props)
-    this.state = this.props.recipe
+    this.state = emptyRecipe
+  }
+  componentWillReceiveProps() {
+    if (this.props.existing) {
+        this.setState(this.props.recipe);
+    } else {
+      this.setState(emptyRecipe);
+    }
   }
   update = () => {
     let ing = [];
@@ -226,8 +242,13 @@ class EditRecipe extends Component {
     this.initialState = this.state;
   }
   submit = () => {
-    if (this.state.id > recipes.length) {
+    let recipe = recipes.find((item)=>{
+      return item.id === this.state.id;
+    });
+    if (!recipe) {
       recipes.push(this.state);
+    } else {
+      recipes[this.state.id-1] = this.state;
     }
     this.reset();
     this.props.toggle();
@@ -291,7 +312,6 @@ class EditRecipe extends Component {
     if (!this.props.show) {
       return null;
     } else {
-      console.log(this.props.recipe);
       return (
         <div>
           <div className="backdrop" onClick={this.props.toggle}></div>
