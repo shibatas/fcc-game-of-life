@@ -1,21 +1,8 @@
 import React, { Component } from 'react';
-import { defaultRecipes, messages } from './initData.js';
+import { defaultRecipes, defaultMessages } from './initData.js';
 import './App.css';
 
-//create a list of all recipe names from initial data
-//TO DO: if user data is stored, use that instead.
-let recipes = defaultRecipes;
-const emptyRecipe = {
-  id: null,
-  name: '',
-  ingredients: [
-    [ '', '', '' ],
-    [ '', '', '' ]
-  ],
-  instructions: [
-    '', '', ''
-  ]
-};
+
 
 class Parent extends Component {
   render() {
@@ -63,11 +50,38 @@ class App extends Component {
     super(props);
     this.state = {
       id: '', //recipe id to be rendered
+      allRecipes: defaultRecipes,
       recipe: emptyRecipe,
-      messages: messages,
+      messages: defaultMessages,
       showRecipe: false,
       editRecipe: false
     };
+  }
+  static propTypes = {
+    emptyRecipe: object,
+    savedRecipes: array
+  }
+  static defaultProps = {
+    emptyRecipe: {
+      id: null,
+      name: '',
+      ingredients: [
+        [ '', '', '' ],
+        [ '', '', '' ]
+      ],
+      instructions: [
+        '', '', ''
+      ]
+    },
+    savedRecipes: JSON.parse(localStorage.getItem('savedRecipes'))
+  }
+  componentWillMount() {
+    if (this.props.savedRecipes) {
+      this.setState({
+        allRecipes: this.props.savedRecipes,
+        messages: null
+      });
+    }
   }
   componentDidUpdate() {
     let message = null;
@@ -76,6 +90,8 @@ class App extends Component {
         messages: message
       });
     }
+
+    localStorage.setItem('savedRecipes', JSON.stringify(recipes));
   }
   toggleRecipe = (e) => {
     let recipe = recipes.find((item)=>{

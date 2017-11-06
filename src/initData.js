@@ -1,6 +1,6 @@
 //below is a default message when user hasn't created any recipes yet
 //messages is an array. Each item gets rendered with a <p> tag.
-let messages = ["Welcome! Since you haven't created any recipes yet, we've shown some samples below."];
+let defaultMessages = ["Welcome! Since you haven't created any recipes yet, we've shown some samples below."];
 
 //below is the default set of recipes shown, when user hasn't created any yet.
 const defaultRecipes = [
@@ -48,4 +48,4 @@ const defaultRecipes = [
   }
 ];
 
-export { defaultRecipes, messages };
+export { defaultRecipes, defaultMessages };
