@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { defaultRecipes, defaultMessages } from './initData.js';
+import { defaultRecipes, defaultMessages, emptyRecipe } from './initData.js';
 import './App.css';
 
 
@@ -46,35 +46,26 @@ class Footer extends Component {
 
 //From here is all the app contents!
 class App extends Component {
-  constructor(props) {
-    super(props);
+  constructor() {
+    super();
+    let data = defaultRecipes;
+    let messages = defaultMessages;
+
+    if (localStorage.getItem('savedRecipes') !== 'undefined') {
+      console.log('use existing data');
+      data = JSON.parse(localStorage.getItem('savedRecipes'));
+      messages = [];
+    }
+    console.log(data);
     this.state = {
-      allRecipes: defaultRecipes,
+      allRecipes: data,
       currentRecipe: emptyRecipe,
-      messages: defaultMessages,
+      messages: messages,
       showRecipe: false,
       editRecipe: false
     };
   }
-  static propTypes = {
-    emptyRecipe: object,
-    savedRecipes: array
-  }
-  static defaultProps = {
-    emptyRecipe: {
-      id: null,
-      name: '',
-      ingredients: [
-        [ '', '', '' ],
-        [ '', '', '' ]
-      ],
-      instructions: [
-        '', '', ''
-      ]
-    },
-    savedRecipes: JSON.parse(localStorage.getItem('savedRecipes'))
-  }
-  componentWillMount() {
+  componentDidMount() {
     if (this.props.savedRecipes) {
       this.setState({
         allRecipes: this.props.savedRecipes,
@@ -90,15 +81,14 @@ class App extends Component {
         messages: message
       });
     }
-    //update local storage
-    localStorage.setItem('savedRecipes', JSON.stringify(recipes));
+    this.saveRecipes();
+  }
+  saveRecipes = () => {
+    localStorage.setItem('savedRecipes', JSON.stringify(this.state.allRecipes));
   }
   toggleRecipe = (e) => {
-    //find recipe by button id
-    let recipe = thisl.state.allRecipes.find((item)=>{
-      return item.id.toString() === e.target.id;
-    });
-
+    let recipe = this.state.allRecipes[parseInt(e.target.id)];
+    if (this.state.showRecipe) { recipe = emptyRecipe; }
     this.setState({
       showRecipe: !this.state.showRecipe,
       currentRecipe: recipe
@@ -109,20 +99,37 @@ class App extends Component {
       editRecipe: !this.state.editRecipe,
     })
   }
+  submitRecipe = (recipe) => {
+    let data = this.state.allRecipes;
+    let match = data.find((item) => {
+      return item.name === recipe.name;
+    });
+    if (recipe.name === '') {
+      console.log('empty data');
+    } else if (match) {
+      console.log('data already exists');
+    } else {
+      console.log('new data');
+      data.push(recipe);
+      this.setState({
+        allRecipes: data
+      });
+      this.saveRecipes();
+    }
+  }
   deleteRecipe = (e) => {
-//    recipes.splice(this.props.id-1, 1);
-//    recipes.forEach((item, index) => {
-//      recipes[index].id = index+1;
-//    });
-    console.log(e);
-    this.props.toggle(e);
-    //need to reassign ids
+    let data = this.state.allRecipes;
+    let index = data.findIndex((item) => {
+      return item.name === e.target.id;
+    });
+    
+    console.log(this.state.allRecipes[index]);
   }
   render() {
     return (
       <div className="app">
         <RecipeDetails show={this.state.showRecipe} allRecipes={this.state.allRecipes} recipe={this.state.currentRecipe} toggle={this.toggleRecipe} edit={this.toggleEdit} deleteRecipe={this.deleteRecipe}/>
-        <EditRecipe show={this.state.editRecipe} existing={this.state.showRecipe} recipe={this.state.recipe} toggle={this.toggleEdit} emptyRecipe={this.props.emptyRecipe}/>
+        <EditRecipe show={this.state.editRecipe} existing={this.state.showRecipe} recipe={this.state.currentRecipe} toggle={this.toggleEdit} submit={this.submitRecipe} />
         <Messages messages={this.state.messages} />
         <RenderNames allRecipes={this.state.allRecipes} action={this.toggleRecipe} />
         <div className="app-footer">
@@ -153,7 +160,7 @@ class RenderNames extends Component {
     return (
       <div>
         {this.props.allRecipes.map((recipe, index) => {
-          return <button id={recipe.id} key={recipe.id} onClick={this.props.action}>{recipe.name}</button>;
+          return <button id={index} key={index} onClick={this.props.action}>{recipe.name}</button>;
         })}
       </div>
     );
@@ -164,9 +171,7 @@ class RecipeDetails extends Component {
     if (!this.props.show) {
       return null;
     } else {
-      let recipe = this.props.allRecipes.find((item)=>{
-        return item.id.toString() === this.props.recipe.id;
-      });
+      let recipe = this.props.recipe;
       return (
         <div>
           <div className="backdrop" onClick={this.props.toggle}></div>
@@ -210,7 +215,7 @@ class RecipeDetails extends Component {
             </div>
             <div className="modal-footer">
               <button onClick={this.props.edit}>Edit this recipe</button>
-              <button onClick={this.props.deleteRecipe}>Delete this recipe</button>
+              <button id={recipe.name} onClick={this.props.deleteRecipe}>Delete this recipe</button>
             </div>
           </div>
         </div>
@@ -221,7 +226,7 @@ class RecipeDetails extends Component {
 class EditRecipe extends Component {
   constructor(props) {
     super(props)
-    this.state = this.props.emptyRecipe
+    this.state = emptyRecipe
   }
   componentWillReceiveProps() {
     if (this.props.existing) {
@@ -245,12 +250,7 @@ class EditRecipe extends Component {
       let num = index + 1;
       ins.push(document.getElementById('ins-'+ num).value);
     });
-    let id = this.state.id;
-    if (!this.state.id) {
-      id = recipes.length + 1;
-    }
     this.setState({
-      id: id,
       name: document.getElementById('name').value,
       ingredients: ing,
       instructions: ins
@@ -260,31 +260,22 @@ class EditRecipe extends Component {
     this.initialState = this.state;
   }
   submit = () => {
-    let recipe = recipes.find((item)=>{
+    /*let recipe = recipes.find((item)=>{
       return item.id === this.state.id;
     });
     if (!recipe) {
       recipes.push(this.state);
     } else {
       recipes[this.state.id-1] = this.state;
-    }
+    }*/
+    this.props.submit(this.state);
     this.reset();
-    this.props.toggle();
   }
   reset = () => {
     //this.setState(this.initialState);
     //issue: above line did not delete added fields to form, so I am manually resetting state for now.
-    this.setState({
-      id: null,
-      name: '',
-      ingredients: [
-        [ '', '', '' ],
-        [ '', '', '' ]
-      ],
-      instructions: [
-        '', '', ''
-      ]
-    });
+    this.setState(emptyRecipe);
+    this.props.toggle();
   }
   renderIng = () => {
     let arr = [];
@@ -332,10 +323,10 @@ class EditRecipe extends Component {
     } else {
       return (
         <div>
-          <div className="backdrop" onClick={this.props.toggle}></div>
+          <div className="backdrop" onClick={this.reset}></div>
           <form className="modal" id="editForm" action="javascript:void(0);" onSubmit={this.submit}>
             <div className="wrap">
-              <button className="modal-close" onClick={this.props.toggle}>&#215;</button>
+              <button className="modal-close" onClick={this.reset}>&#215;</button>
             </div>
             <h1>Recipe Editor</h1>
             <h3>Type in your recipe below and hit submit!</h3>
