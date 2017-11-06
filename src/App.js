@@ -50,13 +50,11 @@ class App extends Component {
     super();
     let data = defaultRecipes;
     let messages = defaultMessages;
-
-    if (localStorage.getItem('savedRecipes') !== 'undefined') {
+    if (localStorage.getItem('savedRecipes')) {
       console.log('use existing data');
       data = JSON.parse(localStorage.getItem('savedRecipes'));
       messages = [];
     }
-    console.log(data);
     this.state = {
       allRecipes: data,
       currentRecipe: emptyRecipe,
@@ -64,14 +62,6 @@ class App extends Component {
       showRecipe: false,
       editRecipe: false
     };
-  }
-  componentDidMount() {
-    if (this.props.savedRecipes) {
-      this.setState({
-        allRecipes: this.props.savedRecipes,
-        messages: null
-      });
-    }
   }
   componentDidUpdate() {
     //update message
@@ -87,8 +77,10 @@ class App extends Component {
     localStorage.setItem('savedRecipes', JSON.stringify(this.state.allRecipes));
   }
   toggleRecipe = (e) => {
-    let recipe = this.state.allRecipes[parseInt(e.target.id)];
-    if (this.state.showRecipe) { recipe = emptyRecipe; }
+    let recipe = emptyRecipe;
+    if (!this.state.showRecipe) {
+      recipe = this.state.allRecipes[parseInt(e.target.id)];
+    }
     this.setState({
       showRecipe: !this.state.showRecipe,
       currentRecipe: recipe
@@ -101,13 +93,17 @@ class App extends Component {
   }
   submitRecipe = (recipe) => {
     let data = this.state.allRecipes;
-    let match = data.find((item) => {
+    let index = data.findIndex((item) => {
       return item.name === recipe.name;
     });
     if (recipe.name === '') {
       console.log('empty data');
-    } else if (match) {
+    } else if (index !== -1) {
       console.log('data already exists');
+      if (!Object.is(data[index], recipe)) {
+        console.log('replace data');
+        data.splice(index, 1, recipe);
+      }
     } else {
       console.log('new data');
       data.push(recipe);
@@ -122,8 +118,11 @@ class App extends Component {
     let index = data.findIndex((item) => {
       return item.name === e.target.id;
     });
-    
-    console.log(this.state.allRecipes[index]);
+    data.splice(index, 1);
+    this.setState({
+      allRecipes: data
+    });
+    this.toggleRecipe();
   }
   render() {
     return (
@@ -235,6 +234,9 @@ class EditRecipe extends Component {
       this.setState(emptyRecipe);
     }
   }
+  componentWillMount () {
+    this.initialState = this.state;
+  }
   update = () => {
     let ing = [];
     this.state.ingredients.forEach((item, index) => {
@@ -256,24 +258,35 @@ class EditRecipe extends Component {
       instructions: ins
     })
   }
-  componentWillMount () {
-    this.initialState = this.state;
-  }
   submit = () => {
-    /*let recipe = recipes.find((item)=>{
-      return item.id === this.state.id;
-    });
-    if (!recipe) {
-      recipes.push(this.state);
-    } else {
-      recipes[this.state.id-1] = this.state;
-    }*/
-    this.props.submit(this.state);
+    //eliminate empty lines in ingredients and instructions
+    let i = 0, j = 0;
+    let recipe = this.state;
+    do {
+      i = recipe.ingredients.findIndex((item) => {
+          return item[0] === '';
+      });
+      if (i > -1) {
+        recipe.ingredients.splice(i, 1);
+      }
+    } while (i > -1);
+
+    do {
+      j = recipe.instructions.findIndex((item) => {
+        return item === '';
+      });
+      if (j > -1) {
+        recipe.instructions.splice(j, 1);
+      }
+    } while (j > -1);
+
+    this.props.submit(recipe);
     this.reset();
   }
   reset = () => {
     //this.setState(this.initialState);
     //issue: above line did not delete added fields to form, so I am manually resetting state for now.
+    this.setState(null);
     this.setState(emptyRecipe);
     this.props.toggle();
   }
