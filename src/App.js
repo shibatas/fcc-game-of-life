@@ -49,9 +49,8 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      id: '', //recipe id to be rendered
       allRecipes: defaultRecipes,
-      recipe: emptyRecipe,
+      currentRecipe: emptyRecipe,
       messages: defaultMessages,
       showRecipe: false,
       editRecipe: false
@@ -84,23 +83,25 @@ class App extends Component {
     }
   }
   componentDidUpdate() {
+    //update message
     let message = null;
     if (message !== this.state.messages) {
       this.setState({
         messages: message
       });
     }
-
+    //update local storage
     localStorage.setItem('savedRecipes', JSON.stringify(recipes));
   }
   toggleRecipe = (e) => {
-    let recipe = recipes.find((item)=>{
+    //find recipe by button id
+    let recipe = thisl.state.allRecipes.find((item)=>{
       return item.id.toString() === e.target.id;
     });
+
     this.setState({
       showRecipe: !this.state.showRecipe,
-      id: e.target.id,
-      recipe: recipe
+      currentRecipe: recipe
     })
   }
   toggleEdit = () => {
@@ -108,13 +109,22 @@ class App extends Component {
       editRecipe: !this.state.editRecipe,
     })
   }
+  deleteRecipe = (e) => {
+//    recipes.splice(this.props.id-1, 1);
+//    recipes.forEach((item, index) => {
+//      recipes[index].id = index+1;
+//    });
+    console.log(e);
+    this.props.toggle(e);
+    //need to reassign ids
+  }
   render() {
     return (
       <div className="app">
-        <RecipeDetails show={this.state.showRecipe} id={this.state.id} toggle={this.toggleRecipe} edit={this.toggleEdit}/>
-        <EditRecipe show={this.state.editRecipe} existing={this.state.showRecipe} recipe={this.state.recipe} toggle={this.toggleEdit} />
+        <RecipeDetails show={this.state.showRecipe} allRecipes={this.state.allRecipes} recipe={this.state.currentRecipe} toggle={this.toggleRecipe} edit={this.toggleEdit} deleteRecipe={this.deleteRecipe}/>
+        <EditRecipe show={this.state.editRecipe} existing={this.state.showRecipe} recipe={this.state.recipe} toggle={this.toggleEdit} emptyRecipe={this.props.emptyRecipe}/>
         <Messages messages={this.state.messages} />
-        <RenderNames action={this.toggleRecipe} />
+        <RenderNames allRecipes={this.state.allRecipes} action={this.toggleRecipe} />
         <div className="app-footer">
           <hr/>
           <button onClick={this.toggleEdit}>Add a new recipe</button>
@@ -142,7 +152,7 @@ class RenderNames extends Component {
   render() {
     return (
       <div>
-        {recipes.map((recipe, index) => {
+        {this.props.allRecipes.map((recipe, index) => {
           return <button id={recipe.id} key={recipe.id} onClick={this.props.action}>{recipe.name}</button>;
         })}
       </div>
@@ -150,20 +160,12 @@ class RenderNames extends Component {
   }
 }
 class RecipeDetails extends Component {
-  delete = (e) => {
-    recipes.splice(this.props.id-1, 1);
-    recipes.forEach((item, index) => {
-      recipes[index].id = index+1;
-    });
-    this.props.toggle(e);
-    //need to reassign ids
-  }
   render() {
     if (!this.props.show) {
       return null;
     } else {
-      let recipe = recipes.find((item)=>{
-        return item.id.toString() === this.props.id;
+      let recipe = this.props.allRecipes.find((item)=>{
+        return item.id.toString() === this.props.recipe.id;
       });
       return (
         <div>
@@ -208,7 +210,7 @@ class RecipeDetails extends Component {
             </div>
             <div className="modal-footer">
               <button onClick={this.props.edit}>Edit this recipe</button>
-              <button onClick={this.delete}>Delete this recipe</button>
+              <button onClick={this.props.deleteRecipe}>Delete this recipe</button>
             </div>
           </div>
         </div>
@@ -219,7 +221,7 @@ class RecipeDetails extends Component {
 class EditRecipe extends Component {
   constructor(props) {
     super(props)
-    this.state = emptyRecipe
+    this.state = this.props.emptyRecipe
   }
   componentWillReceiveProps() {
     if (this.props.existing) {
