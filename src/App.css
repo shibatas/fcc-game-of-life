@@ -90,6 +90,11 @@ button, .btn {
   background-color: white;
   border-radius: 10px;
   box-shadow: 3px 3px 2px #505050;
+  transform: translateY(-100%);
+}
+.modal.transition {
+  transform: translateY(0%);
+  transition: 10s;
 }
 .wrap {
   position: absolute;

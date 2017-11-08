@@ -2,8 +2,6 @@ import React, { Component } from 'react';
 import { defaultRecipes, defaultMessages, emptyRecipe } from './initData.js';
 import './App.css';
 
-
-
 class Parent extends Component {
   render() {
     return (
@@ -174,7 +172,7 @@ class RecipeDetails extends Component {
       return (
         <div>
           <div className="backdrop" onClick={this.props.toggle}></div>
-          <div className="modal">
+          <div className="modal transition">
             <div className="wrap">
               <button className="modal-close" onClick={this.props.toggle}>&#215;</button>
             </div>
