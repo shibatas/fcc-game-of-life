@@ -86,16 +86,13 @@ button, .btn {
   margin: auto;
   width: 50%;
   min-width: 500px;
-  height: auto;
   background-color: white;
   border-radius: 10px;
   box-shadow: 3px 3px 2px #505050;
-  transform: translateY(-100%);
+  transition: background-color 5s;
 }
 .modal.transition {
-  transform: translateY(0%);
-  transition: 10s;
-}
+  background-color: gray;}
 .wrap {
   position: absolute;
   width: 100%;

@@ -172,7 +172,7 @@ class RecipeDetails extends Component {
       return (
         <div>
           <div className="backdrop" onClick={this.props.toggle}></div>
-          <div className="modal transition">
+          <div className="modal">
             <div className="wrap">
               <button className="modal-close" onClick={this.props.toggle}>&#215;</button>
             </div>
@@ -223,7 +223,10 @@ class RecipeDetails extends Component {
 class EditRecipe extends Component {
   constructor(props) {
     super(props)
-    this.state = emptyRecipe
+    this.state = {
+      recipe: emptyRecipe,
+      modalClass: "modal"
+    }
   }
   componentWillReceiveProps() {
     if (this.props.existing) {
@@ -232,8 +235,14 @@ class EditRecipe extends Component {
       this.setState(emptyRecipe);
     }
   }
-  componentWillMount () {
-    this.initialState = this.state;
+  componentDidUpdate () {
+    if (this.props.show && this.state.modalClass === "modal") {
+      this.setState({modalClass: "modal transition"})
+    } else if (!this.props.show && this.state.modalClass === "modal transition") {
+      this.setState({modalClass: "modal"})
+    }
+
+    console.log(this.state.modalClass);
   }
   update = () => {
     let ing = [];
@@ -259,7 +268,7 @@ class EditRecipe extends Component {
   submit = () => {
     //eliminate empty lines in ingredients and instructions
     let i = 0, j = 0;
-    let recipe = this.state;
+    let recipe = this.state.recipe;
     do {
       i = recipe.ingredients.findIndex((item) => {
           return item[0] === '';
@@ -282,15 +291,13 @@ class EditRecipe extends Component {
     this.reset();
   }
   reset = () => {
-    //this.setState(this.initialState);
-    //issue: above line did not delete added fields to form, so I am manually resetting state for now.
-    this.setState(null);
-    this.setState(emptyRecipe);
+    this.setState({recipe: null});
+    this.setState({recipe: emptyRecipe});
     this.props.toggle();
   }
   renderIng = () => {
     let arr = [];
-    this.state.ingredients.forEach((item, index) => {
+    this.state.recipe.ingredients.forEach((item, index) => {
       arr.push(
         <tr key={"ing-" + (index+1)}>
           <td className="right"><label>{(index+1)+":"}</label></td>
@@ -304,7 +311,7 @@ class EditRecipe extends Component {
   }
   renderIns = () => {
     let arr = [];
-    this.state.instructions.forEach((item, index) => {
+    this.state.recipe.instructions.forEach((item, index) => {
       arr.push(
         <tr key={"ins-"+(index+1)}>
           <td className="right"><label>{(index+1) + ":"}</label></td>
@@ -315,14 +322,14 @@ class EditRecipe extends Component {
     return arr;
   }
   addIng = () => {
-    let arr = this.state.ingredients;
+    let arr = this.state.recipe.ingredients;
     arr.push( ['', '', ''] );
     this.setState({
       ingredients: arr
     });
   }
   addIns = () => {
-    let arr = this.state.instructions;
+    let arr = this.state.recipe.instructions;
     arr.push( '' );
     this.setState({
       instructions: arr
@@ -335,7 +342,7 @@ class EditRecipe extends Component {
       return (
         <div>
           <div className="backdrop" onClick={this.reset}></div>
-          <form className="modal" id="editForm" action="javascript:void(0);" onSubmit={this.submit}>
+          <form className={this.state.modalClass} id="editForm" action="javascript:void(0);" onSubmit={this.submit}>
             <div className="wrap">
               <button className="modal-close" onClick={this.reset}>&#215;</button>
             </div>
