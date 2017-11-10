@@ -6,7 +6,6 @@ class Parent extends Component {
   render() {
     return (
       <div>
-        <p>NOTE: I am still completing this app. Please check back soon for the finished product!</p>
         <Header />
         <App />
         <Footer />
@@ -129,7 +128,7 @@ class App extends Component {
     } else if (index !== -1) {
       console.log('data already exists');
       if (!Object.is(data[index], recipe)) {
-        console.log('replace data');
+        console.log('replace data', data[index], recipe);
         data.splice(index, 1, recipe);
       }
     } else {
@@ -148,9 +147,13 @@ class App extends Component {
     });
     data.splice(index, 1);
     this.setState({
-      allRecipes: data
+      allRecipes: data,
+      currentRecipe: emptyRecipe,
+      classes: {
+        details: "hidden",
+        edit: "hidden"
+      }
     });
-    this.toggleRecipe();
   }
 }
 class Messages extends Component {
@@ -185,7 +188,6 @@ class RecipeDetails extends Component {
   }
   render() {
     let recipe = this.props.recipe;
-    // hidden:
     return (
       <div>
         <div className={"backdrop " + this.props.show} onClick={this.props.toggle}></div>
@@ -239,20 +241,41 @@ class RecipeDetails extends Component {
 class EditRecipe extends Component {
   constructor() {
     super();
-    this.state = {
-      name: null,
-      ingredients: [null],
-      instructions: [null]
-    };
+    this.state = emptyRecipe;
   }
   componentWillReceiveProps(nextProps) {
+    console.log('will receive props', nextProps.recipe);
     this.setState(nextProps.recipe);
   }
-  componentWillUpdate() {
-    console.log(this.state);
-  }
   render() {
-    let recipe = this.state;
+    let contents = (
+      <table className="row">
+        <tbody>
+          <tr>
+            <td className="left"><label>Name:</label></td>
+            <td colSpan="3"><input type="text" id="name" defaultValue={this.state.name} onChange={this.update}/></td>
+          </tr>
+          <tr><td><br/></td></tr>
+          <tr>
+            <td className="left"><label>Ingredients:</label></td>
+          </tr>
+          <tr>
+            <td/>
+            <td className="center" width="200">name</td>
+            <td className="center">qty</td>
+            <td className="center">unit</td>
+          </tr>
+          <this.renderIng />
+          <tr><td><br/></td></tr>
+          <tr>
+            <td className="left"><label>Instructions:</label></td>
+          </tr>
+          <this.renderIns />
+        </tbody>
+      </table>
+    );
+    //un-render table while hidden - necessary to ensure all content changes are captured
+    if (this.props.classes === "hidden") {contents = null;}
     return (
       <div>
         <div className={"backdrop " + this.props.classes} onClick={this.reset}></div>
@@ -262,30 +285,7 @@ class EditRecipe extends Component {
           </div>
           <h1>Recipe Editor</h1>
           <h3>Type in your recipe below and hit submit!</h3>
-          <table className="row">
-            <tbody>
-              <tr>
-                <td className="left"><label>Name:</label></td>
-                <td colSpan="3"><input type="text" id="name" defaultValue={recipe.name} onChange={this.update}/></td>
-              </tr>
-              <tr><td><br/></td></tr>
-              <tr>
-                <td className="left"><label>Ingredients:</label></td>
-              </tr>
-              <tr>
-                <td/>
-                <td className="center" width="200">name</td>
-                <td className="center">qty</td>
-                <td className="center">unit</td>
-              </tr>
-              <this.renderIng />
-              <tr><td><br/></td></tr>
-              <tr>
-                <td className="left"><label>Instructions:</label></td>
-              </tr>
-              <this.renderIns />
-            </tbody>
-          </table>
+          {contents}
           <div className="center">
             <button className='btn-small' type="button" onClick={this.addIng}>More Ingredients</button>
             <button className='btn-small' type="button" onClick={this.addIns}>More Instructions</button>
@@ -322,6 +322,7 @@ class EditRecipe extends Component {
     //eliminate empty lines in ingredients and instructions
     let i = 0, j = 0;
     let recipe = this.state;
+    console.log("pre-submit", recipe);
     do {
       i = recipe.ingredients.findIndex((item) => {
           return item[0] === '';
@@ -341,16 +342,17 @@ class EditRecipe extends Component {
     } while (j > -1);
     console.log("submit", recipe)
     this.props.submit(recipe);
-    this.reset();
+    this.setState(emptyRecipe);
+    this.props.toggle();
   }
-  reset = () => {
-    this.setState(null);
+  reset = (e) => {
+    e.preventDefault();
     this.setState(emptyRecipe);
     this.props.toggle();
   }
   renderIng = () => {
     let arr = [];
-    this.props.recipe.ingredients.forEach((item, index) => {
+    this.state.ingredients.forEach((item, index) => {
       arr.push(
         <tr key={"ing-" + (index+1)}>
           <td className="right"><label>{(index+1)+":"}</label></td>
@@ -364,7 +366,7 @@ class EditRecipe extends Component {
   }
   renderIns = () => {
     let arr = [];
-    this.props.recipe.instructions.forEach((item, index) => {
+    this.state.instructions.forEach((item, index) => {
       arr.push(
         <tr key={"ins-"+(index+1)}>
           <td className="right"><label>{(index+1) + ":"}</label></td>
@@ -375,14 +377,14 @@ class EditRecipe extends Component {
     return arr;
   }
   addIng = () => {
-    let arr = this.state.recipe.ingredients;
+    let arr = this.state.ingredients;
     arr.push( ['', '', ''] );
     this.setState({
       ingredients: arr
     });
   }
   addIns = () => {
-    let arr = this.state.recipe.instructions;
+    let arr = this.state.instructions;
     arr.push( '' );
     this.setState({
       instructions: arr

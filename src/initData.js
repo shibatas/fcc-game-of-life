@@ -5,11 +5,11 @@ const defaultMessages = ["Welcome! Since you haven't created any recipes yet, we
 const emptyRecipe = {
   name: '',
   ingredients: [
-    [ '', '', '' ],
-    [ '', '', '' ]
+    ['', '', ''],
+    ['', '', '']
   ],
   instructions: [
-    '', ''
+    '', '', ''
   ]
 };
 
