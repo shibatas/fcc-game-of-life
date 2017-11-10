@@ -49,7 +49,6 @@ class App extends Component {
     let data = defaultRecipes;
     let messages = defaultMessages;
     if (localStorage.getItem('savedRecipes')) {
-      console.log('use existing data');
       data = JSON.parse(localStorage.getItem('savedRecipes'));
       messages = [];
     }
@@ -57,8 +56,10 @@ class App extends Component {
       allRecipes: data,
       currentRecipe: emptyRecipe,
       messages: messages,
-      showRecipe: false,
-      editRecipe: false
+      classes: {
+        edit: "hidden",
+        details: "hidden"
+      }
     };
   }
   componentDidUpdate() {
@@ -71,22 +72,51 @@ class App extends Component {
     }
     this.saveRecipes();
   }
+  render() {
+    return (
+      <div className="app">
+        <RecipeDetails show={this.state.classes.details} allRecipes={this.state.allRecipes} recipe={this.state.currentRecipe} toggle={this.toggleRecipe} edit={this.toggleEdit} deleteRecipe={this.deleteRecipe}/>
+        <EditRecipe classes={this.state.classes.edit} recipe={this.state.currentRecipe} toggle={this.toggleEdit} submit={this.submitRecipe} />
+        <Messages messages={this.state.messages} />
+        <RenderNames allRecipes={this.state.allRecipes} action={this.toggleRecipe} />
+        <div className="app-footer">
+          <hr/>
+          <button id="show-editor" onClick={this.toggleEdit}>Add a new recipe</button>
+        </div>
+      </div>
+    );
+  }
   saveRecipes = () => {
     localStorage.setItem('savedRecipes', JSON.stringify(this.state.allRecipes));
   }
   toggleRecipe = (e) => {
     let recipe = emptyRecipe;
-    if (!this.state.showRecipe) {
+    let classModal = "hidden";
+    if (e.target.id) {
       recipe = this.state.allRecipes[parseInt(e.target.id)];
+      classModal = "";
     }
     this.setState({
-      showRecipe: !this.state.showRecipe,
+      classes: {
+        details: classModal,
+        edit: "hidden"
+      },
       currentRecipe: recipe
-    })
+    });
   }
-  toggleEdit = () => {
+  toggleEdit = (e) => {
+    let recipe = emptyRecipe;
+    let classEdit = "hidden";
+    if (e) {
+      classEdit = "";
+      recipe = this.state.currentRecipe;
+    }
     this.setState({
-      editRecipe: !this.state.editRecipe,
+      classes: {
+        details: "hidden",
+        edit: classEdit
+      },
+      currentRecipe: recipe
     })
   }
   submitRecipe = (recipe) => {
@@ -122,20 +152,6 @@ class App extends Component {
     });
     this.toggleRecipe();
   }
-  render() {
-    return (
-      <div className="app">
-        <RecipeDetails show={this.state.showRecipe} allRecipes={this.state.allRecipes} recipe={this.state.currentRecipe} toggle={this.toggleRecipe} edit={this.toggleEdit} deleteRecipe={this.deleteRecipe}/>
-        <EditRecipe show={this.state.editRecipe} existing={this.state.showRecipe} recipe={this.state.currentRecipe} toggle={this.toggleEdit} submit={this.submitRecipe} />
-        <Messages messages={this.state.messages} />
-        <RenderNames allRecipes={this.state.allRecipes} action={this.toggleRecipe} />
-        <div className="app-footer">
-          <hr/>
-          <button onClick={this.toggleEdit}>Add a new recipe</button>
-        </div>
-      </div>
-    );
-  }
 }
 class Messages extends Component {
   render() {
@@ -164,85 +180,122 @@ class RenderNames extends Component {
   }
 }
 class RecipeDetails extends Component {
+  constructor(props) {
+    super(props);
+  }
   render() {
-    if (!this.props.show) {
-      return null;
-    } else {
-      let recipe = this.props.recipe;
-      return (
-        <div>
-          <div className="backdrop" onClick={this.props.toggle}></div>
-          <div className="modal">
-            <div className="wrap">
-              <button className="modal-close" onClick={this.props.toggle}>&#215;</button>
-            </div>
-            <h1>{recipe.name}</h1>
-            <div className="recipe">
-              <h3 className="left">Ingredients:</h3>
-              <table>
-                <thead>
-                  <tr>
-                    <th width='70%'>Ingredient</th>
-                    <th>Qty</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recipe.ingredients.map((item, index) => {
-                    return (
+    let recipe = this.props.recipe;
+    // hidden:
+    return (
+      <div>
+        <div className={"backdrop " + this.props.show} onClick={this.props.toggle}></div>
+        <div className={"modal " + this.props.show}>
+          <div className="wrap">
+            <button className="modal-close" onClick={this.props.toggle}>&#215;</button>
+          </div>
+          <h1>{recipe.name}</h1>
+          <div className="recipe">
+            <h3 className="left">Ingredients:</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th width='70%'>Ingredient</th>
+                  <th>Qty</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recipe.ingredients.map((item, index) => {
+                  return (
+                    <tr key={index}>
+                      <td>{item[0]}</td>
+                      <td>{item[1] + ' ' + item[2]}</td>
+                    </tr> );
+                })}
+              </tbody>
+            </table>
+            <h3 className="left">Instructions:</h3>
+            <table className="instructions">
+              <tbody>
+                {recipe.instructions.map((item, index) => {
+                  return (
                       <tr key={index}>
-                        <td>{item[0]}</td>
-                        <td>{item[1] + ' ' + item[2]}</td>
-                      </tr> );
-                  })}
-                </tbody>
-              </table>
-              <h3 className="left">Instructions:</h3>
-              <table className="instructions">
-                <tbody>
-                  {recipe.instructions.map((item, index) => {
-                    return (
-                        <tr key={index}>
-                          <td width='50px'>{(index + 1) + '.'}</td>
-                          <td>{item}</td>
-                        </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-            <div className="modal-footer">
-              <button onClick={this.props.edit}>Edit this recipe</button>
-              <button id={recipe.name} onClick={this.props.deleteRecipe}>Delete this recipe</button>
-            </div>
+                        <td width='50px'>{(index + 1) + '.'}</td>
+                        <td>{item}</td>
+                      </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <div className="modal-footer">
+            <button id="show-editor" onClick={this.props.edit}>Edit this recipe</button>
+            <button id={recipe.name} onClick={this.props.deleteRecipe}>Delete this recipe</button>
           </div>
         </div>
-      );
-    }
+      </div>
+    );
   }
 }
 class EditRecipe extends Component {
-  constructor(props) {
-    super(props)
+  constructor() {
+    super();
     this.state = {
-      recipe: emptyRecipe,
-      modalClass: "modal"
-    }
+      name: null,
+      ingredients: [null],
+      instructions: [null]
+    };
   }
-  componentWillReceiveProps() {
-    if (this.props.existing) {
-        this.setState(this.props.recipe);
-    } else {
-      this.setState(emptyRecipe);
-    }
+  componentWillReceiveProps(nextProps) {
+    this.setState(nextProps.recipe);
   }
-  componentDidUpdate () {
-    if (this.props.show && this.state.modalClass === "modal") {
-      this.setState({modalClass: "modal transition"})
-    } else if (!this.props.show && this.state.modalClass === "modal transition") {
-      this.setState({modalClass: "modal"})
-    }
-
-    console.log(this.state.modalClass);
+  componentWillUpdate() {
+    console.log(this.state);
+  }
+  render() {
+    let recipe = this.state;
+    return (
+      <div>
+        <div className={"backdrop " + this.props.classes} onClick={this.reset}></div>
+        <form className={"modal " + this.props.classes} id="editForm" action="javascript:void(0);" onSubmit={this.submit}>
+          <div className="wrap">
+            <button className="modal-close" onClick={this.reset}>&#215;</button>
+          </div>
+          <h1>Recipe Editor</h1>
+          <h3>Type in your recipe below and hit submit!</h3>
+          <table className="row">
+            <tbody>
+              <tr>
+                <td className="left"><label>Name:</label></td>
+                <td colSpan="3"><input type="text" id="name" defaultValue={recipe.name} onChange={this.update}/></td>
+              </tr>
+              <tr><td><br/></td></tr>
+              <tr>
+                <td className="left"><label>Ingredients:</label></td>
+              </tr>
+              <tr>
+                <td/>
+                <td className="center" width="200">name</td>
+                <td className="center">qty</td>
+                <td className="center">unit</td>
+              </tr>
+              <this.renderIng />
+              <tr><td><br/></td></tr>
+              <tr>
+                <td className="left"><label>Instructions:</label></td>
+              </tr>
+              <this.renderIns />
+            </tbody>
+          </table>
+          <div className="center">
+            <button className='btn-small' type="button" onClick={this.addIng}>More Ingredients</button>
+            <button className='btn-small' type="button" onClick={this.addIns}>More Instructions</button>
+          </div>
+          <div className="modal-footer">
+            <input className='btn btn-submit' type="submit" value="submit"/>
+          </div>
+        </form>
+      </div>
+    );
   }
   update = () => {
     let ing = [];
@@ -268,7 +321,7 @@ class EditRecipe extends Component {
   submit = () => {
     //eliminate empty lines in ingredients and instructions
     let i = 0, j = 0;
-    let recipe = this.state.recipe;
+    let recipe = this.state;
     do {
       i = recipe.ingredients.findIndex((item) => {
           return item[0] === '';
@@ -286,18 +339,18 @@ class EditRecipe extends Component {
         recipe.instructions.splice(j, 1);
       }
     } while (j > -1);
-
+    console.log("submit", recipe)
     this.props.submit(recipe);
     this.reset();
   }
   reset = () => {
-    this.setState({recipe: null});
-    this.setState({recipe: emptyRecipe});
+    this.setState(null);
+    this.setState(emptyRecipe);
     this.props.toggle();
   }
   renderIng = () => {
     let arr = [];
-    this.state.recipe.ingredients.forEach((item, index) => {
+    this.props.recipe.ingredients.forEach((item, index) => {
       arr.push(
         <tr key={"ing-" + (index+1)}>
           <td className="right"><label>{(index+1)+":"}</label></td>
@@ -311,7 +364,7 @@ class EditRecipe extends Component {
   }
   renderIns = () => {
     let arr = [];
-    this.state.recipe.instructions.forEach((item, index) => {
+    this.props.recipe.instructions.forEach((item, index) => {
       arr.push(
         <tr key={"ins-"+(index+1)}>
           <td className="right"><label>{(index+1) + ":"}</label></td>
@@ -334,55 +387,6 @@ class EditRecipe extends Component {
     this.setState({
       instructions: arr
     });
-  }
-  render() {
-    if (!this.props.show) {
-      return null;
-    } else {
-      return (
-        <div>
-          <div className="backdrop" onClick={this.reset}></div>
-          <form className={this.state.modalClass} id="editForm" action="javascript:void(0);" onSubmit={this.submit}>
-            <div className="wrap">
-              <button className="modal-close" onClick={this.reset}>&#215;</button>
-            </div>
-            <h1>Recipe Editor</h1>
-            <h3>Type in your recipe below and hit submit!</h3>
-            <table className="row">
-              <tbody>
-                <tr>
-                  <td className="left"><label>Name:</label></td>
-                  <td colSpan="3"><input type="text" id="name" defaultValue={this.state.name} onChange={this.update}/></td>
-                </tr>
-                <tr><td><br/></td></tr>
-                <tr>
-                  <td className="left"><label>Ingredients:</label></td>
-                </tr>
-                <tr>
-                  <td/>
-                  <td className="center" width="200">name</td>
-                  <td className="center">qty</td>
-                  <td className="center">unit</td>
-                </tr>
-                <this.renderIng />
-                <tr><td><br/></td></tr>
-                <tr>
-                  <td className="left"><label>Instructions:</label></td>
-                </tr>
-                <this.renderIns />
-              </tbody>
-            </table>
-            <div className="center">
-              <button className='btn-small' type="button" onClick={this.addIng}>More Ingredients</button>
-              <button className='btn-small' type="button" onClick={this.addIns}>More Instructions</button>
-            </div>
-            <div className="modal-footer">
-              <input className='btn btn-submit' type="submit" value="submit"/>
-            </div>
-          </form>
-        </div>
-      );
-    }
   }
 }
 

@@ -9,7 +9,7 @@ const emptyRecipe = {
     [ '', '', '' ]
   ],
   instructions: [
-    '', '', ''
+    '', ''
   ]
 };
 
