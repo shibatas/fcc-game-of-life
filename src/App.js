@@ -30,7 +30,7 @@ class App extends Component {
   constructor() {
     super();
     this.state = {
-      size: [150, 100]
+      size: [50, 30]
     }
   }
   render() {
@@ -55,7 +55,7 @@ class Board extends Component {
   }
   render() {
     let size = this.props.size;
-    let tileW = 5, tileH = 5;
+    let tileW = 15, tileH = 15;
     let box = [];
     for (let j=0; j<size[1]; j++) {
       let row = [];

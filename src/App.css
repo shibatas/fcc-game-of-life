@@ -2,6 +2,7 @@ body {
   margin: 0;
   text-align: center;
   font-family: Helvetica;
+  background-color: white;
 }
 
 /* header area */
@@ -35,6 +36,10 @@ body {
 /* Board */
 .dead {
   fill: green;
+}
+.dead:hover {
+  fill: white;
+  cursor: crosshair;
 }
 .new {
   fill: yellow;
