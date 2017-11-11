@@ -1,21 +1,7 @@
-@import url('../node_modules/font-awesome/css/font-awesome.min.css');
-
 body {
   margin: 0;
   text-align: center;
   font-family: Helvetica;
-}
-.left {
-  text-align: left;
-}
-.right {
-  text-align: right;
-}
-.center {
-  text-align: center;
-}
-hr {
-  width: 90%
 }
 
 /* header area */
@@ -25,7 +11,7 @@ hr {
   min-width: 500px;
   height: 100px;
   margin: auto;
-  background-color: #c43a19;
+  background-color: #264F3D;
   border-radius: 5px;
   box-shadow: 3px 3px 2px gray;
 }
@@ -38,127 +24,21 @@ hr {
 
 /* app area */
 .app {
-  width: 50%;
+  width: 90%;
   min-width: 500px;
+  height: 500px;
   margin: auto;
   margin-top: 40px;
   margin-bottom: 40px;
 }
-.app-footer {
-  margin-top: 20px;
-}
-button, .btn {
-  width: 150px;
-  padding: 15px;
-  margin: 20px;
-  border-radius: 3px;
-  font-weight: bolder;
-  background-color: #bebebe;
-}
-.btn-small {
-  width: 150px;
-  padding: 5px;
-  margin-top: 20px;
-  margin-bottom: 5px;
-}
-.btn-submit {
-  padding: 7px;
-  font-size: 1.5em;
-  border-radius: 10px;
-  background-color: #c43a19;
-  border-color: #b33517;
-  color: #ffffff;
-}
 
-/* modal */
-.backdrop {
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background-color: #000000;
-  opacity: 0.5;
-  transition: 0.5s;
+/* Board */
+.dead {
+  fill: green;
 }
-.backdrop.hidden {
-  opacity: 0;
-  z-index: -100;
+.new {
+  fill: yellow;
 }
-.modal {
-  position: fixed;
-  top: 100px;
-  margin: auto;
-  width: 50%;
-  min-width: 500px;
-  background-color: white;
-  border-radius: 10px;
-  box-shadow: 3px 3px 2px #505050;
-  transition: .5s;
-}
-.wrap {
-  position: absolute;
-  width: 100%;
-}
-.modal-close {
-  float: right;
-  margin: 5px;
-  padding: 0;
-  width: 30px;
-  height: 30px;
-  font-size: 1.5em;
-  border-radius: 8px;
-}
-.modal-footer {
-  background-color: #fbe6e1;
-  border-radius: inherit;
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
-  padding: 10px;
-  text-align: center;
-  margin-top: 20px;
-}
-.modal.hidden {
-  transform: translateY(-200%);
-}
-
-/* recipe table */
-.recipe {
-  margin: 30px;
-}
-table {
-  width: 80%;
-  margin: auto;
-  border-collapse: collapse;
-}
-th {
-  border-bottom: solid 1px black;
-  line-height: 1.5em;
-}
-td {
-  line-height: 1.5em;
-  padding-left: 10px;
-  padding-right: 10px;
-}
-/*tr:nth-child(even) {
-  background: #E0E0E0;
-}*/
-.instructions {
-  text-align: left;
-}
-
-/* edit modal */
-input {
-  width: 100%;
-}
-
-/* footer area */
-footer {
-  text-align: center;
-}
-
-.fa {
-  text-decoration: none;
-  color: black;
-  padding: 5px;
+.live {
+  fill: red;
 }
