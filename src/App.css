@@ -34,6 +34,9 @@ body {
 }
 
 /* Board */
+.board {
+  margin: 30px;
+}
 .dead {
   fill: green;
 }
@@ -46,4 +49,8 @@ body {
 }
 .live {
   fill: red;
+}
+.live:hover {
+  fill: white;
+  cursor: crosshair;
 }
