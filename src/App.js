@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import Footer from './assets/footer';
+import { size, rate, density } from './config.js'
 import './App.css';
 
 class Parent extends Component {
@@ -27,90 +28,116 @@ class Header extends Component {
 
 //From here is all the app contents!
 class App extends Component {
-  constructor() {
-    super();
-    this.state = {
-      size: [50, 30]
-    }
-  }
-  render() {
-    return (
-      <div className="app">
-        <Board size={this.state.size} />
-      </div>
-    );
-  }
-}
-
-class Board extends Component {
   constructor(props) {
     super(props);
     const initState = {};
-    for (let j=0; j<this.props.size[1]; j++) {
-      for (let i=0; i<this.props.size[0]; i++) {
+    for (let j=0; j<size[1]; j++) {
+      for (let i=0; i<size[0]; i++) {
         initState[i+'x'+j] = "dead"
       }
     }
-    this.state = initState;
+    this.state = {
+      board: initState,
+      intervalId: null
+    }
+  }
+  componentWillMount() {
+    this.randomGenerate();
+  }
+  componentDidMount() {
+    //console.log(this.state.board);
+  }
+  componentDidUpdate() {
+    //console.log(this.state.board);
   }
   render() {
-    let size = this.props.size;
-    let tileW = 15, tileH = 15;
+    let tileW = size[0]/3, tileH = tileW;
     let box = [];
     for (let j=0; j<size[1]; j++) {
       let row = [];
       for (let i=0; i<size[0]; i++) {
         let pos = i+'x'+j;
         row.push(
-          <span id={pos} className={this.state[pos]} onClick={this.handleClick} >
-            <svg id={pos} width={tileW} height={tileH}>
-              <rect id={pos} className={this.state[pos]} width={tileW} height={tileH} />
+          <span key={pos} id={pos} className={this.state.board[pos]} onClick={this.handleClick} >
+            <svg width={tileW} height={tileH}>
+              <rect id={pos} className={this.state.board[pos]} width={tileW} height={tileH} />
             </svg>
           </span>
         );
       }
       box.push(
-        <div id={'row'+j} style={{height: tileH}}>{row}</div>
+        <div key={'row'+j} id={'row'+j} style={{height: tileH}}>{row}</div>
       );
     }
     return (
-      <div>
+      <div className="app">
         <div className="board">
           {box}
-        </div>
-        <div>
-          <button id="nextStep" onClick={this.step}>Next Step</button>
+          <button id="start" onClick={this.startStop}>Start</button>
+          <button id="pause" onClick={this.startStop}>Pause</button>
+          <button id="clear" onClick={this.clearBoard}>Clear</button>
+          <button id="random" onClick={this.randomGenerate}>Random</button>
         </div>
       </div>
     );
   }
-  handleClick = (e) => {
-    this.change(e.target.id);
-  }
-  change = (id) => {
-    let newState = {}
-    if (this.state[id] === 'dead') {
-      newState[id] = 'live';
-    } else if (this.state[id] === 'live') {
-      newState[id] = 'dead';
+  clearBoard = () => {
+    console.log('clear board');
+    let newBoard = this.state.board;
+    for (const prop in newBoard) {
+      newBoard[prop] = 'dead';
     }
-    this.setState(newState);
+    this.setState(newBoard);
   }
-  step = () => {
+  randomGenerate = () => {
+    console.log('random generate');
+    this.clearBoard();
+    let newBoard = this.state.board;
+    for (const prop in newBoard) {
+      if (Math.random() < density) {
+        newBoard[prop] = 'live';
+      }
+    }
+    this.setState(newBoard);
+  }
+  startStop = (e) => {
+    let id = null;
+    if (e.target.id === 'start') {
+      id = setInterval(() => {
+        this.stepForward();
+      }, rate);
+    } else {
+      clearInterval(this.state.intervalId);
+    }
+    this.setState({intervalId: id});
+  }
+  handleClick = (e) => {
+    this.modifyCell(e.target.id);
+  }
+  modifyCell = (id) => {
+    let newBoard = this.state.board;
+    if (newBoard[id] === 'dead') {
+      newBoard[id] = 'live';
+    } else if (newBoard[id] === 'live') {
+      newBoard[id] = 'dead';
+    }
+    this.setState({board: newBoard});
+  }
+  stepForward = () => {
     //handles update according to game rules
     //Any live cell with fewer than two live neighbours dies, as if caused by underpopulation.
     //Any live cell with two or three live neighbours lives on to the next generation.
     //Any live cell with more than three live neighbours dies, as if by overpopulation.
     //Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
-    let currentBoard = this.state;
+    let currentBoard = this.state.board;
     let newBoard = {};
     for (const prop in currentBoard) {
-      newBoard[prop] =  this.nextState(prop);
+      newBoard[prop] =  this.getNextState(prop);
     }
-    this.setState(newBoard);
+    this.setState({board: newBoard});
   }
-  nextState = (id) => {
-    let oldState = this.state[id];
+  getNextState = (id) => {
+    let oldState = this.state.board[id];
     let current = id.split('x');
     let x = parseInt(current[0]);
     let y = parseInt(current[1]);
@@ -124,7 +151,7 @@ class Board extends Component {
     neighbors.splice(4,1);
     //get sum of surrounding live cells
     let sum = neighbors.reduce((sum, val) => {
-      if (this.state[val] === 'live') {
+      if (this.state.board[val] === 'live') {
         return sum+1;
       } else { return sum }
     }, 0);

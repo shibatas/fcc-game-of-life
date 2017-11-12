@@ -15,5 +15,5 @@
     "eject": "react-scripts eject",
     "deploy": "gh-pages -d build"
   },
-  "homepage": "http://shibatas.github.io/fcc-recipe-box/"
+  "homepage": "http://shibatas.github.io/fcc-game-of-life/"
 }

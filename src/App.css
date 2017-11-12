@@ -2,7 +2,7 @@ body {
   margin: 0;
   text-align: center;
   font-family: Helvetica;
-  background-color: white;
+  background-color: #60b28e;
 }
 
 /* header area */
@@ -14,7 +14,7 @@ body {
   margin: auto;
   background-color: #264F3D;
   border-radius: 5px;
-  box-shadow: 3px 3px 2px gray;
+  box-shadow: 3px 3px 2px black;
 }
 .title {
   line-height: 100px;
@@ -30,25 +30,27 @@ body {
   height: 500px;
   margin: auto;
   margin-top: 40px;
-  margin-bottom: 40px;
+  margin-bottom: 60px;
 }
 
 /* Board */
+button {
+  margin: 10px;
+}
 .board {
   margin: 30px;
 }
 .dead {
-  fill: green;
+  fill: #336951;
+  transition: fill 0.1s;
 }
 .dead:hover {
   fill: white;
   cursor: crosshair;
 }
-.new {
-  fill: yellow;
-}
 .live {
   fill: red;
+  transition: fill 0.1s;
 }
 .live:hover {
   fill: white;
