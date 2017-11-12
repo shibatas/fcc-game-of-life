@@ -1,5 +1,5 @@
 {
-  "name": "fcc-recipe-box",
+  "name": "fcc-game-of-life",
   "version": "0.1.0",
   "private": true,
   "dependencies": {

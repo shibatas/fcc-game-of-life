@@ -1,6 +1,6 @@
 {
-  "short_name": "Recipe Box",
-  "name": "freeCodeCamp Recipe Box Project",
+  "short_name": "Game of Life",
+  "name": "freeCodeCamp Game of Life Project",
   "icons": [
     {
       "src": "favicon.ico",
