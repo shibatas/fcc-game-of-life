@@ -1,9 +1,9 @@
 //number of cells, [x, y]
-const size = [50, 30];
+const size = [100, 60];
 //dimension of each cells
 const boardWidth = 600;
 //default speed, milliseconds frame rate
-const rate = 100;
+const rate = 200;
 //density of live cells when generating random board
 const density = 0.3;
 //initial state of the board (empty board)
