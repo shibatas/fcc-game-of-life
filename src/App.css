@@ -8,8 +8,7 @@ body {
 /* header area */
 .banner {
   text-align: center;
-  width: 50%;
-  min-width: 500px;
+  width: 600px;
   height: 100px;
   margin: auto;
   background-color: #264F3D;

@@ -163,7 +163,6 @@ class App extends Component {
         nextUpdate[id] =  this.getNextState(id, currentState);
       }
     }
-    let nextFullBoard = Object.assign(currentState, nextUpdate);
     this.setState({
       fullBoard: Object.assign(currentState, nextUpdate),
       update: nextUpdate
