@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import Footer from './assets/footer';
-import { size, cell, rate, density, initState } from './config.js'
+import { size, boardWidth, rate, density, initState } from './config.js'
 import './App.css';
 
 class Parent extends Component {
@@ -30,41 +30,23 @@ class Header extends Component {
 class App extends Component {
   constructor(props) {
     super(props);
-    let data = Object.assign({}, initState);
+    let fullBoard = Object.assign({}, initState);
     if (localStorage.getItem('shibatasGameOfLife')) {
-      data = JSON.parse(localStorage.getItem('shibatasGameOfLife'));
+      fullBoard = JSON.parse(localStorage.getItem('shibatasGameOfLife'));
     }
-    data.intervalId = null;
-    data.running = false;
-    this.state = data;
+    this.state = {
+      fullBoard,
+      update: null,
+      intervalId: null,
+      running: false
+    }
   }
   componentWillMount() {
-    console.log(this.state);
     if (!localStorage.getItem('shibatasGameOfLife')) {
       this.randomGenerate();
     }
   }
   render() {
-    let tileW = cell[0], tileH = cell[1];
-    let box = [];
-    for (let j=0; j<size[1]; j++) {
-      let row = [];
-      for (let i=0; i<size[0]; i++) {
-        let pos = i+'x'+j;
-        row.push(
-          <span key={pos} id={pos} className={this.state[pos]} onClick={this.handleClick} >
-            <svg width={tileW} height={tileH}>
-              <rect id={pos} className={this.state[pos]} width={tileW} height={tileH} />
-            </svg>
-          </span>
-        );
-      }
-      box.push(
-        <div key={'row'+j} id={'row'+j} style={{height: tileH}}>{row}</div>
-      );
-    }
-    //set css width/height for the Board
-    let boardWidth = size[0]*cell[0];
     return (
       <div className="app" style={{width:boardWidth}}>
         <p>Welcome! This is my recreation of John Horton Conway&#39;s <a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life" target="_blank" rel="noopener noreferrer">Game of Life</a>.</p>
@@ -73,7 +55,7 @@ class App extends Component {
             <button id="start" onClick={this.handleClick}>Start</button> :
             <button id="pause" onClick={this.handleClick}>Pause</button>
           }
-          {box}
+          <Board update={this.state.update} renderBoard={this.generateBoard(size[0],size[1])} modifyCell={this.handleClick} />
           <button id="save" onClick={this.handleClick}>Save</button>
           <button id="reset" onClick={this.handleClick}>Reset</button>
           <button id="clear" onClick={this.handleClick}>Clear</button>
@@ -116,8 +98,9 @@ class App extends Component {
   saveBoard = () => {
     console.log('save');
     clearInterval(this.state.intervalId);
-    localStorage.setItem('shibatasGameOfLife', JSON.stringify(this.state));
+    localStorage.setItem('shibatasGameOfLife', JSON.stringify(this.state.fullBoard));
     alert("Current state saved. Click RESET to come back to this state.");
+    this.setState({running: false});
   }
   resetBoard = () => {
     console.log('reset');
@@ -126,35 +109,46 @@ class App extends Component {
     if (localStorage.getItem('shibatasGameOfLife')) {
       data = JSON.parse(localStorage.getItem('shibatasGameOfLife'));
     }
-    this.setState(data);
+    this.setState({
+      fullBoard: data,
+      update: data,
+      running: false
+    });
   }
   clearBoard = () => {
     console.log('clear board');
-    console.log('initState', initState);
     clearInterval(this.state.intervalId);
-    this.setState({board: Object.assign({}, initState)});
+    this.setState({
+      fullBoard: Object.assign({}, initState),
+      update: Object.assign({}, initState),
+      running: false
+    });
   }
   randomGenerate = () => {
     console.log('random generate');
-    let newBoard = {};
+    let randomBoard = {};
     for (const prop in initState) {
       if (Math.random() < density) {
-        newBoard[prop] = 'live';
+        randomBoard[prop] = 'live';
       } else {
-        newBoard[prop] = 'dead';
+        randomBoard[prop] = 'dead';
       }
     }
-    this.setState(newBoard);
+    this.setState({
+      fullBoard: randomBoard,
+      update: randomBoard
+    });
   }
   modifyCell = (id) => {
-    console.log(id);
-    let newBoard = Object.assign({}, this.state);
-    if (newBoard[id] === 'dead') {
-      newBoard[id] = 'live';
-    } else if (newBoard[id] === 'live') {
-      newBoard[id] = 'dead';
+    let newState = {};
+    newState[id] = 'dead';
+    if (this.state.fullBoard[id] === 'dead') {
+      newState[id] = 'live';
     }
-    this.setState(newBoard);
+    this.setState({
+      fullBoard: Object.assign(this.state.fullBoard, newState),
+      update: newState
+    });
   }
   stepForward = () => {
     //handles update according to game rules
@@ -162,17 +156,18 @@ class App extends Component {
     //Any live cell with two or three live neighbours lives on to the next generation.
     //Any live cell with more than three live neighbours dies, as if by overpopulation.
     //Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
-    let currentState = Object.assign({}, this.state);
-    delete currentState.intervalId;
-    delete currentState.running;
-    let nextState = {};
-    //if no buffer, calculate next state as well as fill buffer
+    let currentState = Object.assign({}, this.state.fullBoard);
+    let nextUpdate = {};
     for (const id in currentState) {
       if (this.getNextState(id, currentState)) {
-        nextState[id] =  this.getNextState(id, currentState);
+        nextUpdate[id] =  this.getNextState(id, currentState);
       }
     }
-    this.setState({board: nextState});
+    let nextFullBoard = Object.assign(currentState, nextUpdate);
+    this.setState({
+      fullBoard: Object.assign(currentState, nextUpdate),
+      update: nextUpdate
+    });
   }
   getNextState = (id, currentState) => {
     let oldState = currentState[id];
@@ -207,6 +202,44 @@ class App extends Component {
       newState = null;
     }
     return newState;
+  }
+  generateBoard = (x, y) => {
+    let w = boardWidth / x;
+    let h = w;
+    let board = [];
+    for (let j=0; j<y; j++) {
+      let row = [];
+      for (let i=0; i<x; i++) {
+        let pos = i+'x'+j;
+        row.push(
+          <span key={pos} id={pos} onClick={this.handleClick} >
+            <svg width={w} height={h}>
+              <rect id={pos} className={this.state.fullBoard[pos]} width={w} height={h} />
+            </svg>
+          </span>
+        );
+      }
+      board.push(
+        <div key={'row'+j} id={'row'+j} style={{height: h}}>{row}</div>
+      );
+    }
+    return board;
+  }
+}
+class Board extends Component {
+  constructor(props) {
+    super(props);
+    this.state = null;
+  }
+  componentWillReceiveProps() {
+    this.setState(this.props.update);
+  }
+  render() {
+    return (
+      <div>
+        {this.props.renderBoard}
+      </div>
+    );
   }
 }
 
