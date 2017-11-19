@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import Footer from './assets/footer';
-import { size, boardWidth, rate, density, initState } from './config.js'
+import { size, boardWidth, rate, density, initState, defaultState } from './config.js'
 import './App.css';
 
 class Parent extends Component {
@@ -38,7 +38,8 @@ class App extends Component {
       fullBoard,
       update: null,
       intervalId: null,
-      running: false
+      running: false,
+      selected: 'default'
     }
   }
   componentWillMount() {
@@ -56,10 +57,18 @@ class App extends Component {
             <button id="pause" onClick={this.handleClick}>Pause</button>
           }
           <Board update={this.state.update} renderBoard={this.generateBoard(size[0],size[1])} modifyCell={this.handleClick} />
+          <div>
+            <select id="savedBoards" onChange={this.handleDropdown} value={this.state.selected}>
+              <option id="default" value="default">Choose a Starting Pattern</option>
+              <option id="random" value="random">Random</option>
+              <option id="saved" value="saved">Last Saved</option>
+              <option id="default-1" value="1">"Gliders"</option>
+              <option id="default-2" value="2">"Pentadecathlon"</option>
+              <option id="default-3" value="3">"Gosper Glider Gun"</option>
+            </select>
+          </div>
           <button id="save" onClick={this.handleClick}>Save</button>
-          <button id="reset" onClick={this.handleClick}>Reset</button>
           <button id="clear" onClick={this.handleClick}>Clear</button>
-          <button id="random" onClick={this.handleClick}>Random</button>
         </div>
       </div>
     );
@@ -70,15 +79,14 @@ class App extends Component {
       this.startStop(action);
     } else if (action === 'save') {
       this.saveBoard();
-    } else if (action === 'reset') {
-      this.resetBoard();
     } else if (action === 'clear') {
       this.clearBoard();
-    } else if (action === 'random') {
-      this.randomGenerate();
     } else {
       this.modifyCell(e.target.id);
     }
+  }
+  handleDropdown = (e) => {
+    this.setBoard(e.target.value);
   }
   startStop = (action) => {
     console.log('start stop');
@@ -96,23 +104,38 @@ class App extends Component {
     });
   }
   saveBoard = () => {
-    console.log('save');
     clearInterval(this.state.intervalId);
     localStorage.setItem('shibatasGameOfLife', JSON.stringify(this.state.fullBoard));
     alert("Current state saved. Click RESET to come back to this state.");
     this.setState({running: false});
+    console.log("saved as 'shibatasGameOfLife' in localStorage");
   }
-  resetBoard = () => {
+  setBoard = (value) => {
     console.log('reset');
     clearInterval(this.state.intervalId);
     let data = Object.assign({}, initState);
-    if (localStorage.getItem('shibatasGameOfLife')) {
+    let selected = 'default';
+    if (value === 'default') {
+      return;
+    } else if (value === 'random') {
+      this.randomGenerate();
+      selected = 'random';
+      return;
+    } else if (value === 'saved' && localStorage.getItem('shibatasGameOfLife')) {
+      console.log('from localStorage');
       data = JSON.parse(localStorage.getItem('shibatasGameOfLife'));
+      selected = 'local';
+    } else if (value) {
+      console.log('from set pattern', value);
+      let id = parseInt(value);
+      data = defaultState[id-1];
+      selected = value;
     }
     this.setState({
       fullBoard: data,
       update: data,
-      running: false
+      running: false,
+      selected: selected
     });
   }
   clearBoard = () => {
@@ -121,7 +144,8 @@ class App extends Component {
     this.setState({
       fullBoard: Object.assign({}, initState),
       update: Object.assign({}, initState),
-      running: false
+      running: false,
+      selected: 'default'
     });
   }
   randomGenerate = () => {
@@ -136,7 +160,8 @@ class App extends Component {
     }
     this.setState({
       fullBoard: randomBoard,
-      update: randomBoard
+      update: randomBoard,
+      selected: 'random'
     });
   }
   modifyCell = (id) => {
@@ -235,7 +260,7 @@ class Board extends Component {
   }
   render() {
     return (
-      <div>
+      <div className="board-inner">
         {this.props.renderBoard}
       </div>
     );
