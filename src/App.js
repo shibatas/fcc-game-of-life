@@ -119,9 +119,12 @@ class App extends Component {
       return;
     } else if (value === 'random') {
       this.randomGenerate();
-      selected = 'random';
       return;
-    } else if (value === 'saved' && localStorage.getItem('shibatasGameOfLife')) {
+    } else if (value === 'saved' && !localStorage.getItem('shibatasGameOfLife')) {
+      alert('No saved data. Randomly generating.');
+      this.randomGenerate();
+      return;
+    } else if (value === 'saved') {
       console.log('from localStorage');
       data = JSON.parse(localStorage.getItem('shibatasGameOfLife'));
       selected = 'local';
